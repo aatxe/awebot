@@ -35,7 +35,8 @@ fn main() {
 fn process_message_dynamic<'a>(server: &'a Wrapper<'a, BufferedStream<NetStream>>, 
                                message: Message) -> IoResult<()> {
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
-        if path.extension().is_none() || path.extension().unwrap() != b"dylib" { continue }
+        if path.extension().is_none() || path.extension().unwrap() != b"dylib" &&
+           path.extension().unwrap() != b"so" { continue }
         let lib = DynamicLibrary::open(Some(path.as_str().unwrap())).unwrap();            
         let process: fn(&'a Wrapper<'a, BufferedStream<NetStream>>, Message) -> IoResult<()> = 
             unsafe {
