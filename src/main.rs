@@ -1,4 +1,4 @@
-#![feature(if_let, slicing_syntax)]
+#![feature(if_let, slicing_syntax, unboxed_closures)]
 extern crate irc;
 
 use std::collections::HashMap;
@@ -35,17 +35,9 @@ fn main() {
 }
 
 struct Function<'a> { 
-    lib: DynamicLibrary,
-    pub process: Option<fn(&'a Wrapper<'a, BufferedStream<NetStream>>, Message) -> IoResult<()>>,
+    pub lib: DynamicLibrary,
+    pub process: fn(&'a Wrapper<'a, BufferedStream<NetStream>>, Message) -> IoResult<()>,
     pub modified: u64,
-}
-
-impl<'a> Function<'a> {
-    fn eval(&mut self) {
-        self.process = Some(unsafe {
-            std::mem::transmute(self.lib.symbol::<u8>("process").unwrap())
-        });
-    }
 }
 
 impl<'a> Show for Function<'a> {
@@ -64,16 +56,19 @@ fn process_message_dynamic<'a>(server: &'a Wrapper<'a, BufferedStream<NetStream>
         let modified = path.stat().unwrap().modified;
         let key = path.as_str().unwrap().into_string();
         if !cache.contains_key(&key) || cache[key].modified != modified {
+            cache.remove(&key);
             let lib = DynamicLibrary::open(Some(path.as_str().unwrap())).unwrap();   
-            let mut func = Function { 
+            let func = unsafe {
+                std::mem::transmute(lib.symbol::<u8>("process").unwrap())
+            };
+            let func = Function { 
                 lib: lib,
-                process: None,
+                process: func,
                 modified: modified,
             };
-            func.eval();
             cache.insert(key.clone(), func);
         }
-        try!((cache[key].process.unwrap())(server, message.clone()));    
+        try!((cache[key].process)(server, message.clone()));    
     }
     Ok(())
 }
