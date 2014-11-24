@@ -18,10 +18,10 @@ fn main() {
         username: "awebot".into_string(),
         realname: "awebot".into_string(),
         password: "".into_string(),
-        server: "irc.fyrechat.net".into_string(),
-        port: 6667,
-        use_ssl: false,
-        channels: vec!("#vana".into_string()),
+        server: "irc.pdgn.co".into_string(),
+        port: 6697,
+        use_ssl: true,
+        channels: vec!("#pdgn".into_string()),
         options: HashMap::new(),
     };
     let irc_server = IrcServer::from_config(config).unwrap();
@@ -58,12 +58,11 @@ fn process_message_dynamic<'a>(server: &'a Wrapper<'a, BufferedStream<NetStream>
         if !cache.contains_key(&key) || cache[key].modified != modified {
             cache.remove(&key);
             let lib = DynamicLibrary::open(Some(path.as_str().unwrap())).unwrap();   
-            let func = unsafe {
-                std::mem::transmute(lib.symbol::<u8>("process").unwrap())
-            };
             let func = Function { 
+                process: unsafe {
+                    std::mem::transmute(lib.symbol::<u8>("process").unwrap())
+                },
                 lib: lib,
-                process: func,
                 modified: modified,
             };
             cache.insert(key.clone(), func);
