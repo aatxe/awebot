@@ -50,9 +50,9 @@ impl<'a> Show for Function<'a> {
 fn process_message_dynamic<'a>(server: &'a Wrapper<'a, BufferedStream<NetStream>>,
                                message: Message, cache: &mut HashMap<String, Function<'a>>) 
 -> IoResult<()> {
+    let valid = [b"dylib", b"so", b"dll"];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
-        if path.extension().is_none() || path.extension().unwrap() != b"dylib" &&
-           path.extension().unwrap() != b"so" { continue }
+        if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { continue }
         let modified = path.stat().unwrap().modified;
         let key = path.as_str().unwrap().into_string();
         if !cache.contains_key(&key) || cache[key].modified != modified {
