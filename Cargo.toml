@@ -6,6 +6,6 @@ authors = ["Aaron Weiss <aaronweiss74@gmail.com>"]
 
 [dependencies.irc]
 
-irc = "~0.1.0"
+irc = "~0.3.0"
 features = ["ssl"]
 

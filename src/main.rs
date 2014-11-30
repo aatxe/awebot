@@ -21,6 +21,7 @@ fn main() {
         server: "irc.pdgn.co".into_string(),
         port: 6697,
         use_ssl: true,
+        encoding: "UTF-8".into_string(),
         channels: vec!("#pdgn".into_string()),
         options: HashMap::new(),
     };
