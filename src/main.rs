@@ -4,7 +4,7 @@ extern crate irc;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Error, Formatter, Show};
-use std::io::{BufferedStream, IoResult};
+use std::io::{BufferedReader, BufferedWriter, IoResult};
 use std::io::fs::{PathExtensions, walk_dir};
 use irc::conn::NetStream;
 use irc::data::{Config, Message};
@@ -35,9 +35,11 @@ fn main() {
     }
 }
 
+type NetWrapper<'a> = Wrapper<'a, BufferedReader<NetStream>, BufferedWriter<NetStream>>;
+
 struct Function<'a> { 
     pub lib: DynamicLibrary,
-    pub process: fn(&'a Wrapper<'a, BufferedStream<NetStream>>, Message) -> IoResult<()>,
+    pub process: fn(&'a NetWrapper<'a>, Message) -> IoResult<()>,
     pub modified: u64,
 }
 
@@ -48,9 +50,8 @@ impl<'a> Show for Function<'a> {
     }
 }
 
-fn process_message_dynamic<'a>(server: &'a Wrapper<'a, BufferedStream<NetStream>>,
-                               message: Message, cache: &mut HashMap<String, Function<'a>>) 
--> IoResult<()> {
+fn process_message_dynamic<'a>(server: &'a NetWrapper<'a>, message: Message, 
+                               cache: &mut HashMap<String, Function<'a>>) -> IoResult<()> {
     let valid = [b"dylib", b"so", b"dll"];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
         if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { continue }
