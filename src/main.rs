@@ -2,6 +2,7 @@
 extern crate irc;
 
 use std::collections::HashMap;
+use std::default::Default;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Error, Formatter, Show};
 use std::io::{BufferedReader, BufferedWriter, IoResult};
@@ -13,17 +14,12 @@ use irc::server::utils::Wrapper;
 
 fn main() {
     let config = Config {
-        owners: vec!("awe".into_string()),
-        nickname: "awebot".into_string(),
-        username: "awebot".into_string(),
-        realname: "awebot".into_string(),
-        password: "".into_string(),
-        server: "irc.pdgn.co".into_string(),
-        port: 6697,
-        use_ssl: true,
-        encoding: "UTF-8".into_string(),
-        channels: vec!("#pdgn".into_string()),
-        options: HashMap::new(),
+        owners: Some(vec!("awe".into_string())),
+        nickname: Some("awebot".into_string()),
+        server: Some("irc.pdgn.co".into_string()),
+        use_ssl: Some(true),
+        channels: Some(vec!("#pdgn".into_string())),
+        .. Default::default()
     };
     let irc_server = IrcServer::from_config(config).unwrap();
     let server = Wrapper::new(&irc_server);
