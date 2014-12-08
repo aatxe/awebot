@@ -1,4 +1,4 @@
-#![feature(if_let, slicing_syntax, unboxed_closures)]
+#![feature(slicing_syntax, unboxed_closures)]
 extern crate irc;
 
 use std::collections::HashMap;
