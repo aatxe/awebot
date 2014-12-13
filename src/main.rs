@@ -2,26 +2,17 @@
 extern crate irc;
 
 use std::collections::HashMap;
-use std::default::Default;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Error, Formatter, Show};
 use std::io::{BufferedReader, BufferedWriter, IoResult};
 use std::io::fs::{PathExtensions, walk_dir};
 use irc::conn::NetStream;
-use irc::data::{Config, Message};
+use irc::data::Message;
 use irc::server::{IrcServer, Server};
 use irc::server::utils::Wrapper;
 
 fn main() {
-    let config = Config {
-        owners: Some(vec!("awe".into_string())),
-        nickname: Some("awebot".into_string()),
-        server: Some("irc.pdgn.co".into_string()),
-        use_ssl: Some(true),
-        channels: Some(vec!("#pdgn".into_string())),
-        .. Default::default()
-    };
-    let irc_server = IrcServer::from_config(config).unwrap();
+    let irc_server = IrcServer::new("config.json").unwrap();
     let server = Wrapper::new(&irc_server);
     server.identify().unwrap();
     let mut cache = HashMap::new();
