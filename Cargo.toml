@@ -8,4 +8,4 @@ authors = ["Aaron Weiss <aaronweiss74@gmail.com>"]
 
 irc = "*"
 features = ["encode", "ssl"]
-
+crate-type = ["dylib"]

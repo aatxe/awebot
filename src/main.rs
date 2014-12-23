@@ -1,6 +1,7 @@
 #![feature(slicing_syntax, unboxed_closures)]
 extern crate irc;
 
+use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Error, Formatter, Show};
@@ -17,6 +18,7 @@ fn main() {
     server.identify().unwrap();
     let mut cache = HashMap::new();
     for message in server.iter() {
+        let message = message.unwrap();
         print!("{}", message.into_string());
         process_message_dynamic(&server, message, &mut cache).unwrap();
     }
@@ -43,7 +45,7 @@ fn process_message_dynamic<'a>(server: &'a NetWrapper<'a>, message: Message,
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
         if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { continue }
         let modified = path.stat().unwrap().modified;
-        let key = path.as_str().unwrap().into_string();
+        let key = path.as_str().unwrap().to_owned();
         if !cache.contains_key(&key) || cache[key].modified != modified {
             cache.remove(&key);
             let lib = DynamicLibrary::open(Some(path.as_str().unwrap())).unwrap();   
