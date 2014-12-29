@@ -3,26 +3,27 @@ name = "awebot"
 version = "0.0.1"
 dependencies = [
  "irc 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "encoding"
-version = "0.2.9"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding-index-japanese 1.0.20141106 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding-index-japanese 1.0.20141219 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding-index-korean 1.2.20141219 (registry+https://github.com/rust-lang/crates.io-index)",
- "encoding-index-simpchinese 1.0.20141106 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding-index-simpchinese 1.0.20141219 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding-index-singlebyte 1.0.20141106 (registry+https://github.com/rust-lang/crates.io-index)",
  "encoding-index-tradchinese 1.0.20141106 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "encoding-index-japanese"
-version = "1.0.20141106"
+version = "1.0.20141219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding_index_tests 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_index_tests 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -30,15 +31,15 @@ name = "encoding-index-korean"
 version = "1.2.20141219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding_index_tests 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_index_tests 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "encoding-index-simpchinese"
-version = "1.0.20141106"
+version = "1.0.20141219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding_index_tests 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_index_tests 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -46,7 +47,7 @@ name = "encoding-index-singlebyte"
 version = "1.0.20141106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding_index_tests 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_index_tests 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -54,12 +55,12 @@ name = "encoding-index-tradchinese"
 version = "1.0.20141106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding_index_tests 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_index_tests 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "encoding_index_tests"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -67,7 +68,7 @@ name = "irc"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "encoding 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
