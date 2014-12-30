@@ -27,7 +27,7 @@ fn main() {
 type NetWrapper<'a> = Wrapper<'a, BufferedReader<NetStream>, BufferedWriter<NetStream>>;
 
 struct Function<'a> { 
-    pub lib: DynamicLibrary,
+    _lib: DynamicLibrary,
     pub process: fn(&'a NetWrapper<'a>, Message) -> IoResult<()>,
     pub modified: u64,
 }
@@ -53,7 +53,7 @@ fn process_message_dynamic<'a>(server: &'a NetWrapper<'a>, message: Message,
                 process: unsafe {
                     std::mem::transmute(lib.symbol::<u8>("process").unwrap())
                 },
-                lib: lib,
+                _lib: lib,
                 modified: modified,
             };
             cache.insert(key.clone(), func);
