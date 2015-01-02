@@ -47,6 +47,7 @@ fn process_message_dynamic<'a>(server: &'a NetWrapper<'a>, message: Message,
         let modified = path.stat().unwrap().modified;
         let key = path.as_str().unwrap().to_owned();
         if !cache.contains_key(&key) || cache[key].modified != modified {
+            //unsafe { std::mem::forget(cache.remove(&key)) } // leak to prevent segfaults
             cache.remove(&key);
             let lib = DynamicLibrary::open(Some(path.as_str().unwrap())).unwrap();   
             let func = Function { 
