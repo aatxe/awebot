@@ -1,3 +1,4 @@
+#![allow(unstable)]
 #![feature(slicing_syntax, unboxed_closures)]
 extern crate irc;
 
@@ -13,14 +14,23 @@ use irc::server::{IrcServer, Server};
 use irc::server::utils::Wrapper;
 
 fn main() {
-    let irc_server = IrcServer::new("config.json").unwrap();
-    let server = Wrapper::new(&irc_server);
-    server.identify().unwrap();
-    let mut cache = HashMap::new();
-    for message in server.iter() {
-        let message = message.unwrap();
-        print!("{}", message.into_string());
-        process_message_dynamic(&server, message, &mut cache).unwrap();
+    loop {
+        let irc_server = IrcServer::new("config.json").unwrap();
+        let server = Wrapper::new(&irc_server);
+        server.identify().unwrap();
+        let mut cache = HashMap::new();
+        for message in server.iter() {
+            match message {
+                Ok(message) => {
+                    print!("{}", message.into_string());
+                    process_message_dynamic(&server, message, &mut cache).unwrap();
+                },
+                Err(e) => {
+                    println!("Reconnecting because {}", e);
+                    break
+                }
+            }
+        }
     }
 }
 
