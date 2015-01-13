@@ -8,10 +8,10 @@ use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Error, Formatter, Show};
 use std::io::{BufferedReader, BufferedWriter, IoResult};
 use std::io::fs::{PathExtensions, walk_dir};
-use irc::conn::NetStream;
-use irc::data::Message;
-use irc::server::{IrcServer, Server};
-use irc::server::utils::Wrapper;
+use irc::client::conn::NetStream;
+use irc::client::data::Message;
+use irc::client::server::{IrcServer, Server};
+use irc::client::server::utils::Wrapper;
 
 fn main() {
     loop {
