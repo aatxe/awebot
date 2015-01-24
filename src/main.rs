@@ -5,7 +5,7 @@ extern crate irc;
 use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
-use std::fmt::{Error, Formatter, Show};
+use std::fmt::{Debug, Error, Formatter};
 use std::io::{BufferedReader, BufferedWriter, IoResult};
 use std::io::fs::{PathExtensions, walk_dir};
 use irc::client::conn::NetStream;
@@ -42,10 +42,9 @@ struct Function<'a> {
     pub modified: u64,
 }
 
-impl<'a> Show for Function<'a> {
+impl<'a> Debug for Function<'a> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
-        try!("fn (server, message) -> IoResult<()> : ".fmt(fmt));
-        self.modified.fmt(fmt)
+        write!(fmt, "fn (server, message) -> IoResult<()> : {}", self.modified)
     }
 }
 
