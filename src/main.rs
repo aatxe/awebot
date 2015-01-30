@@ -1,13 +1,12 @@
-#![allow(unstable)]
-#![feature(slicing_syntax, unboxed_closures)]
+#![feature(core, io, path, slicing_syntax, std_misc, unboxed_closures)]
 extern crate irc;
 
 use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Debug, Error, Formatter};
-use std::io::{BufferedReader, BufferedWriter, IoResult};
-use std::io::fs::{PathExtensions, walk_dir};
+use std::old_io::{BufferedReader, BufferedWriter, IoResult};
+use std::old_io::fs::{PathExtensions, walk_dir};
 use irc::client::conn::NetStream;
 use irc::client::data::Message;
 use irc::client::server::{IrcServer, Server};
