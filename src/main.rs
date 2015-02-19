@@ -1,4 +1,4 @@
-#![feature(core, io, path, slicing_syntax, std_misc, unboxed_closures)]
+#![feature(core, io, path, std_misc, unboxed_closures)]
 extern crate irc;
 
 use std::borrow::ToOwned;
