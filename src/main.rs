@@ -5,17 +5,18 @@ use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::fmt::{Debug, Error, Formatter};
-use std::old_io::{BufferedReader, BufferedWriter, IoResult};
-use std::old_io::fs::{PathExtensions, walk_dir};
+use std::fs::walk_dir;
+use std::io::{BufReader, BufWriter, Result};
+use std::io::prelude::*;
+use std::path::Path;
+use std::result::Result as StdResult;
+use std::sys::ext::OsStrExt;
 use irc::client::conn::NetStream;
-use irc::client::data::Message;
-use irc::client::server::{IrcServer, Server};
-use irc::client::server::utils::Wrapper;
+use irc::client::prelude::*;
 
 fn main() {
+    let server = IrcServer::new("config.json").unwrap();
     loop {
-        let irc_server = IrcServer::new("config.json").unwrap();
-        let server = Wrapper::new(&irc_server);
         server.identify().unwrap();
         let mut cache = HashMap::new();
         for message in server.iter() {
@@ -30,30 +31,34 @@ fn main() {
                 }
             }
         }
+        server.reconnect().unwrap();
     }
 }
 
-type NetWrapper<'a> = Wrapper<'a, BufferedReader<NetStream>, BufferedWriter<NetStream>>;
+type NetServer<'a> = ServerExt<'a, BufReader<NetStream>, BufWriter<NetStream>>;
 
 struct Function<'a> { 
     _lib: DynamicLibrary,
-    pub process: fn(&'a NetWrapper<'a>, Message) -> IoResult<()>,
+    pub process: fn(&'a NetServer<'a>, Message) -> Result<()>,
     pub modified: u64,
 }
 
 impl<'a> Debug for Function<'a> {
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, fmt: &mut Formatter) -> StdResult<(), Error> {
         write!(fmt, "fn (server, message) -> IoResult<()> : {}", self.modified)
     }
 }
 
-fn process_message_dynamic<'a>(server: &'a NetWrapper<'a>, message: Message, 
-                               cache: &mut HashMap<String, Function<'a>>) -> IoResult<()> {
+fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message, 
+                               cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
     let valid = [b"dylib", b"so", b"dll"];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
-        if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { continue }
-        let modified = path.stat().unwrap().modified;
-        let key = path.as_str().unwrap().to_owned();
+        let path = try!(path).path();
+        if path.extension().is_none() || !valid.contains(&path.extension().unwrap().as_bytes()) { 
+            continue 
+        }
+        let modified = try!(path.metadata()).modified();
+        let key = path.into_os_string().into_string().unwrap();
         if !cache.contains_key(&key) || cache[key].modified != modified {
             cache.remove(&key);
             let lib = DynamicLibrary::open(Some(&path)).unwrap();   
