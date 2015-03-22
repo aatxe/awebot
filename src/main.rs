@@ -4,13 +4,13 @@ extern crate irc;
 use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
+use std::ffi::AsOsStr;
 use std::fmt::{Debug, Error, Formatter};
 use std::fs::walk_dir;
 use std::io::{BufReader, BufWriter, Result};
 use std::io::prelude::*;
 use std::path::Path;
 use std::result::Result as StdResult;
-use std::sys::ext::OsStrExt;
 use irc::client::conn::NetStream;
 use irc::client::prelude::*;
 
@@ -51,10 +51,10 @@ impl<'a> Debug for Function<'a> {
 
 fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message, 
                                cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
-    let valid = [b"dylib", b"so", b"dll"];
+    let valid = ["dylib".as_os_str(), "so".as_os_str(), "dll".as_os_str()];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
         let path = try!(path).path();
-        if path.extension().is_none() || !valid.contains(&path.extension().unwrap().as_bytes()) { 
+        if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { 
             continue 
         }
         let modified = try!(path.metadata()).modified();
