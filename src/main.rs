@@ -1,7 +1,6 @@
-#![feature(old_io, old_path, std_misc, unboxed_closures)]
+#![feature(fs_time, fs_walk, path_ext, std_misc, unboxed_closures)]
 extern crate irc;
 
-use std::borrow::ToOwned;
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::ffi::AsOsStr;
@@ -58,8 +57,8 @@ fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message,
             continue 
         }
         let modified = try!(path.metadata()).modified();
-        let key = path.into_os_string().into_string().unwrap();
-        if !cache.contains_key(&key) || cache[key].modified != modified {
+        let key = path.clone().into_os_string().into_string().unwrap();
+        if !cache.contains_key(&key) || cache[&key].modified != modified {
             cache.remove(&key);
             let lib = DynamicLibrary::open(Some(&path)).unwrap();   
             let func = Function { 
@@ -71,7 +70,7 @@ fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message,
             };
             cache.insert(key.clone(), func);
         }
-        try!((cache[key].process)(server, message.clone()));    
+        try!((cache[&key].process)(server, message.clone()));    
     }
     Ok(())
 }
