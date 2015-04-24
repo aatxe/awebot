@@ -2,7 +2,7 @@
 name = "awebot"
 version = "0.0.1"
 dependencies = [
- "irc 0.8.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "irc 0.8.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -75,7 +75,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "irc"
-version = "0.8.13"
+version = "0.8.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "encoding 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
