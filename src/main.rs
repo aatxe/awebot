@@ -3,7 +3,7 @@ extern crate irc;
 
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
-use std::ffi::AsOsStr;
+use std::ffi::OsStr;
 use std::fmt::{Debug, Error, Formatter};
 use std::fs::walk_dir;
 use std::io::{BufReader, BufWriter, Result};
@@ -50,7 +50,7 @@ impl<'a> Debug for Function<'a> {
 
 fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message, 
                                cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
-    let valid = ["dylib".as_os_str(), "so".as_os_str(), "dll".as_os_str()];
+    let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
         let path = try!(path).path();
         if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { 
