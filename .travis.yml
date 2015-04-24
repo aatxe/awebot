@@ -1,7 +1,6 @@
 language: rust
 script:
   - cargo build --verbose
-  - cargo doc --verbose
 notifications:
   email: false
   irc:
