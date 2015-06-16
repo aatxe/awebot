@@ -1,4 +1,4 @@
-#![feature(fs_time, fs_walk, path_ext, std_misc, unboxed_closures)]
+#![feature(fs_walk, path_ext, std_misc, unboxed_closures)]
 extern crate irc;
 
 use std::collections::HashMap;
@@ -10,6 +10,8 @@ use std::io::{BufReader, BufWriter, Result};
 use std::io::prelude::*;
 use std::path::Path;
 use std::result::Result as StdResult;
+#[cfg(windows)] use std::os::windows::fs::MetadataExt;
+#[cfg(unix)] use std::os::unix::fs::MetadataExt;
 use irc::client::conn::NetStream;
 use irc::client::prelude::*;
 
@@ -34,11 +36,11 @@ fn main() {
     }
 }
 
-type NetServer<'a> = ServerExt<'a, BufReader<NetStream>, BufWriter<NetStream>>;
+type NetServer = IrcServer<BufReader<NetStream>, BufWriter<NetStream>>;
 
 struct Function<'a> { 
     _lib: DynamicLibrary,
-    pub process: fn(&'a NetServer<'a>, Message) -> Result<()>,
+    pub process: fn(&'a NetServer, Message) -> Result<()>,
     pub modified: u64,
 }
 
@@ -48,7 +50,17 @@ impl<'a> Debug for Function<'a> {
     }
 }
 
-fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message, 
+#[cfg(windows)]
+fn modified(path: &Path) -> Result<u64> {
+    Ok(try!(path.metadata()).last_write_time())
+}
+
+#[cfg(unix)]
+fn modified(path: &Path) -> Result<u64> {
+    Ok(try!(path.metadata()).mtime_nsec() as u64)
+}
+
+fn process_message_dynamic<'a>(server: &'a NetServer, message: Message, 
                                cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
@@ -56,7 +68,7 @@ fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message,
         if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) { 
             continue 
         }
-        let modified = try!(path.metadata()).modified();
+        let modified = try!(modified(&path));
         let key = path.clone().into_os_string().into_string().unwrap();
         if !cache.contains_key(&key) || cache[&key].modified != modified {
             cache.remove(&key);
