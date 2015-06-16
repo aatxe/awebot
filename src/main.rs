@@ -36,11 +36,11 @@ fn main() {
     }
 }
 
-type NetServer = IrcServer<BufReader<NetStream>, BufWriter<NetStream>>;
+type NetServer<'a> = ServerExt<'a, BufReader<NetStream>, BufWriter<NetStream>>;
 
 struct Function<'a> { 
     _lib: DynamicLibrary,
-    pub process: fn(&'a NetServer, Message) -> Result<()>,
+    pub process: fn(&'a NetServer<'a>, Message) -> Result<()>,
     pub modified: u64,
 }
 
@@ -60,7 +60,7 @@ fn modified(path: &Path) -> Result<u64> {
     Ok(try!(path.metadata()).mtime_nsec() as u64)
 }
 
-fn process_message_dynamic<'a>(server: &'a NetServer, message: Message, 
+fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message,
                                cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in walk_dir(&Path::new("plugins/")).unwrap() {
