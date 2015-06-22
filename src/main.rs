@@ -1,4 +1,4 @@
-#![feature(fs_walk, path_ext, std_misc, unboxed_closures)]
+#![feature(dynamic_lib, fs_walk, path_ext, unboxed_closures)]
 extern crate irc;
 
 use std::collections::HashMap;
