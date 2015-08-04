@@ -6,15 +6,15 @@ use std::dynamic_lib::DynamicLibrary;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Error, Formatter};
 use std::fs::walk_dir;
-use std::io::{BufReader, BufWriter, Result};
+use std::io::Result;
 use std::io::prelude::*;
 use std::path::Path;
 use std::result::Result as StdResult;
 use std::thread::spawn;
 #[cfg(windows)] use std::os::windows::fs::MetadataExt;
 #[cfg(unix)] use std::os::unix::fs::MetadataExt;
-use irc::client::conn::NetStream;
 use irc::client::prelude::*;
+use irc::client::server::NetIrcServer;
 
 fn main() {
     let guards: Vec<_> = walk_dir(".").unwrap().flat_map(|p| {
@@ -49,15 +49,13 @@ fn main() {
     guards.into_iter().map(|h| h.join().unwrap()).count();
 }
 
-type NetServer<'a> = ServerExt<'a, BufReader<NetStream>, BufWriter<NetStream>>;
-
-struct Function<'a> {
+struct Function {
     _lib: DynamicLibrary,
-    pub process: fn(&'a NetServer<'a>, Message) -> Result<()>,
+    pub process: fn(&NetIrcServer, Message) -> Result<()>,
     pub modified: u64,
 }
 
-impl<'a> Debug for Function<'a> {
+impl Debug for Function {
     fn fmt(&self, fmt: &mut Formatter) -> StdResult<(), Error> {
         write!(fmt, "fn (server, message) -> IoResult<()> : {}", self.modified)
     }
@@ -73,8 +71,8 @@ fn modified(path: &Path) -> Result<u64> {
     Ok(try!(path.metadata()).mtime_nsec() as u64)
 }
 
-fn process_message_dynamic<'a>(server: &'a NetServer<'a>, message: Message,
-                               cache: &mut HashMap<String, Function<'a>>) -> Result<()> {
+fn process_message_dynamic(server: &NetIrcServer, message: Message,
+                           cache: &mut HashMap<String, Function>) -> Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in walk_dir("plugins/").unwrap() {
         let path = try!(path).path();
