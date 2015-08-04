@@ -19,7 +19,6 @@ use irc::client::server::NetIrcServer;
 fn main() {
     let guards: Vec<_> = walk_dir(".").unwrap().flat_map(|p| {
         let path = p.unwrap().path();
-        println!("path: {:?}", path);
         path.clone().extension().map(|ext| match ext.to_str() {
             Some("json") => Some(Config::load(path).unwrap()),
             _ => None,
