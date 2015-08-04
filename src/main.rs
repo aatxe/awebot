@@ -1,11 +1,11 @@
-#![feature(dynamic_lib, fs_walk, path_ext, unboxed_closures)]
+#![feature(dynamic_lib, path_ext, unboxed_closures)]
 extern crate irc;
 
 use std::collections::HashMap;
 use std::dynamic_lib::DynamicLibrary;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Error, Formatter};
-use std::fs::walk_dir;
+use std::fs::read_dir;
 use std::io::Result;
 use std::io::prelude::*;
 use std::path::Path;
@@ -17,7 +17,7 @@ use irc::client::prelude::*;
 use irc::client::server::NetIrcServer;
 
 fn main() {
-    let guards: Vec<_> = walk_dir(".").unwrap().flat_map(|p| {
+    let guards: Vec<_> = read_dir(".").unwrap().flat_map(|p| {
         let path = p.unwrap().path();
         path.clone().extension().map(|ext| match ext.to_str() {
             Some("json") => Some(Config::load(path).unwrap()),
@@ -73,7 +73,7 @@ fn modified(path: &Path) -> Result<u64> {
 fn process_message_dynamic(server: &NetIrcServer, message: Message,
                            cache: &mut HashMap<String, Function>) -> Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
-    for path in walk_dir("plugins/").unwrap() {
+    for path in read_dir("plugins/").unwrap() {
         let path = try!(path).path();
         if path.extension().is_none() || !valid.contains(&path.extension().unwrap()) {
             continue
