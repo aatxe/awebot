@@ -50,7 +50,7 @@ fn main() {
 
 struct Function {
     _lib: DynamicLibrary,
-    pub process: fn(&NetIrcServer, Message) -> Result<()>,
+    pub process: extern fn(&NetIrcServer, Message) -> Result<()>,
     pub modified: u64,
 }
 
