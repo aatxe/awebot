@@ -1,15 +1,15 @@
 [package]
-
 name = "awebot"
 version = "0.0.1"
 authors = ["Aaron Weiss <aaronweiss74@gmail.com>"]
 
-[dependencies.irc]
+[dependencies.dylib]
+dylib = "*"
 
+[dependencies.irc]
 irc = "*"
 features = ["encode", "ssl"]
 
 [dependencies.openssl]
-
 openssl = "*"
 crate-type = "dylib"

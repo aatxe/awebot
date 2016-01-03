@@ -1,8 +1,7 @@
-#![feature(dynamic_lib, path_ext, unboxed_closures)]
+extern crate dylib;
 extern crate irc;
 
 use std::collections::HashMap;
-use std::dynamic_lib::DynamicLibrary;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Error, Formatter};
 use std::fs::read_dir;
@@ -13,6 +12,7 @@ use std::result::Result as StdResult;
 use std::thread::spawn;
 #[cfg(windows)] use std::os::windows::fs::MetadataExt;
 #[cfg(unix)] use std::os::unix::fs::MetadataExt;
+use dylib::DynamicLibrary;
 use irc::client::prelude::*;
 use irc::client::server::NetIrcServer;
 
