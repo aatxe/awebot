@@ -4,12 +4,11 @@ version = "0.0.1"
 authors = ["Aaron Weiss <aaronweiss74@gmail.com>"]
 
 [dependencies.dylib]
-dylib = "*"
+version = "*"
 
 [dependencies.irc]
-irc = "*"
+version = "*"
 features = ["encode", "ssl"]
 
 [dependencies.openssl]
-openssl = "*"
-crate-type = "dylib"
+version  = "*"

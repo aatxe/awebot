@@ -14,7 +14,6 @@ use std::thread::spawn;
 #[cfg(unix)] use std::os::unix::fs::MetadataExt;
 use dylib::DynamicLibrary;
 use irc::client::prelude::*;
-use irc::client::server::NetIrcServer;
 
 fn main() {
     let guards: Vec<_> = read_dir(".").unwrap().flat_map(|p| {
@@ -26,22 +25,19 @@ fn main() {
     }).map(|config| {
         spawn(|| {
             let server = IrcServer::from_config(config).unwrap();
-            loop {
-                server.identify().unwrap();
-                let mut cache = HashMap::new();
-                for message in server.iter() {
-                    match message {
-                        Ok(message) => {
-                            print!("{}", message.into_string());
-                            process_message_dynamic(&server, message, &mut cache).unwrap();
-                        },
-                        Err(e) => {
-                            println!("Reconnecting because {}", e);
-                            break
-                        }
+            server.identify().unwrap();
+            let mut cache = HashMap::new();
+            for message in server.iter() {
+                match message {
+                    Ok(message) => {
+                        print!("{}", message.into_string());
+                        process_message_dynamic(&server, message, &mut cache).unwrap();
+                    },
+                    Err(e) => {
+                        println!("Reconnecting because {}", e);
+                        break
                     }
                 }
-                server.reconnect().unwrap();
             }
         })
     }).collect();
@@ -50,7 +46,7 @@ fn main() {
 
 struct Function {
     _lib: DynamicLibrary,
-    pub process: extern fn(&NetIrcServer, Message) -> Result<()>,
+    pub process: extern fn(&IrcServer, Message) -> Result<()>,
     pub modified: u64,
 }
 
@@ -70,7 +66,7 @@ fn modified(path: &Path) -> Result<u64> {
     Ok(try!(path.metadata()).mtime_nsec() as u64)
 }
 
-fn process_message_dynamic(server: &NetIrcServer, message: Message,
+fn process_message_dynamic(server: &IrcServer, message: Message,
                            cache: &mut HashMap<String, Function>) -> Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in read_dir("plugins/").unwrap() {
