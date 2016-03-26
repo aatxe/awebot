@@ -30,7 +30,7 @@ fn main() {
             for message in server.iter() {
                 match message {
                     Ok(message) => {
-                        print!("{}", message.into_string());
+                        print!("{}", message);
                         process_message_dynamic(&server, message, &mut cache).unwrap();
                     },
                     Err(e) => {
