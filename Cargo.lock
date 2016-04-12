@@ -3,8 +3,8 @@ name = "awebot"
 version = "0.0.1"
 dependencies = [
  "dylib 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "irc 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "openssl 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "irc 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -92,11 +92,11 @@ dependencies = [
 
 [[package]]
 name = "irc"
-version = "0.11.1"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "encoding 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "openssl 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -112,7 +112,7 @@ dependencies = [
 
 [[package]]
 name = "lazy_static"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -130,20 +130,20 @@ dependencies = [
 
 [[package]]
 name = "openssl"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gcc 0.3.26 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "openssl-sys 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "openssl-sys-extras 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl-sys 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl-sys-extras 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "openssl-sys"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gdi32-sys 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -155,12 +155,12 @@ dependencies = [
 
 [[package]]
 name = "openssl-sys-extras"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "openssl-sys 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl-sys 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
