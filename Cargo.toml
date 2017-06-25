@@ -1,14 +1,8 @@
 [package]
 name = "awebot"
-version = "0.0.1"
-authors = ["Aaron Weiss <aaronweiss74@gmail.com>"]
+version = "0.1.0"
+authors = ["Aaron Weiss <awe@pdgn.co>"]
 
-[dependencies.dylib]
-version = "*"
-
-[dependencies.irc]
-version = "*"
-features = ["encode", "ssl"]
-
-[dependencies.openssl]
-version  = "*"
+[dependencies]
+irc = "0.12.0"
+libloading = "0.4.0"

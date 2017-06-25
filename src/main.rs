@@ -1,19 +1,18 @@
-extern crate dylib;
 extern crate irc;
+extern crate libloading;
 
 use std::collections::HashMap;
 use std::ffi::OsStr;
-use std::fmt::{Debug, Error, Formatter};
+use std::fmt;
 use std::fs::read_dir;
-use std::io::Result;
-use std::io::prelude::*;
 use std::path::Path;
-use std::result::Result as StdResult;
 use std::thread::spawn;
 #[cfg(windows)] use std::os::windows::fs::MetadataExt;
 #[cfg(unix)] use std::os::unix::fs::MetadataExt;
-use dylib::DynamicLibrary;
+
+use irc::error;
 use irc::client::prelude::*;
+use libloading::{Library, Symbol};
 
 fn main() {
     let guards: Vec<_> = read_dir(".").unwrap().flat_map(|p| {
@@ -27,47 +26,46 @@ fn main() {
             let server = IrcServer::from_config(config).unwrap();
             server.identify().unwrap();
             let mut cache = HashMap::new();
-            for message in server.iter() {
-                match message {
-                    Ok(message) => {
-                        print!("{}", message);
-                        process_message_dynamic(&server, message, &mut cache).unwrap();
-                    },
-                    Err(e) => {
-                        println!("Reconnecting because {}", e);
-                        break
-                    }
-                }
-            }
+            server.for_each_incoming(|message| {
+                print!("{}", message);
+                process_message_dynamic(&server, message, &mut cache).unwrap();
+            })
         })
     }).collect();
     guards.into_iter().map(|h| h.join().unwrap()).count();
 }
 
-struct Function {
-    _lib: DynamicLibrary,
-    pub process: extern fn(&IrcServer, Message) -> Result<()>,
+struct Lib {
+    lib: Library,
     pub modified: u64,
 }
 
-impl Debug for Function {
-    fn fmt(&self, fmt: &mut Formatter) -> StdResult<(), Error> {
+impl Lib {
+    fn process<'a>(&'a self) -> Symbol<'a, extern fn(&IrcServer, &Message) -> error::Result<()>> {
+        unsafe {
+            self.lib.get(b"process").unwrap()
+        }
+    }
+}
+
+impl fmt::Debug for Lib {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         write!(fmt, "fn (server, message) -> IoResult<()> : {}", self.modified)
     }
 }
 
 #[cfg(windows)]
-fn modified(path: &Path) -> Result<u64> {
-    Ok(try!(path.metadata()).last_write_time())
+fn modified(path: &Path) -> error::Result<u64> {
+    Ok(path.metadata()?.last_write_time())
 }
 
 #[cfg(unix)]
-fn modified(path: &Path) -> Result<u64> {
-    Ok(try!(path.metadata()).mtime_nsec() as u64)
+fn modified(path: &Path) -> error::Result<u64> {
+    Ok(path.metadata()?.mtime_nsec() as u64)
 }
 
 fn process_message_dynamic(server: &IrcServer, message: Message,
-                           cache: &mut HashMap<String, Function>) -> Result<()> {
+                           cache: &mut HashMap<String, Lib>) -> error::Result<()> {
     let valid: [&OsStr; 3] = ["dylib".as_ref(), "so".as_ref(), "dll".as_ref()];
     for path in read_dir("plugins/").unwrap() {
         let path = try!(path).path();
@@ -78,17 +76,14 @@ fn process_message_dynamic(server: &IrcServer, message: Message,
         let key = path.clone().into_os_string().into_string().unwrap();
         if !cache.contains_key(&key) || cache[&key].modified != modified {
             cache.remove(&key);
-            let lib = DynamicLibrary::open(Some(&path)).unwrap();
-            let func = Function {
-                process: unsafe {
-                    std::mem::transmute(lib.symbol::<u8>("process").unwrap())
-                },
-                _lib: lib,
+            let lib = Library::new(path).unwrap();
+            let func = Lib {
+                lib: lib,
                 modified: modified,
             };
             cache.insert(key.clone(), func);
         }
-        try!((cache[&key].process)(server, message.clone()));
+        try!((cache[&key].process())(server, &message));
     }
     Ok(())
 }
