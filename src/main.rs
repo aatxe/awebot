@@ -1,28 +1,45 @@
 #[macro_use]
 extern crate diesel;
-extern crate dotenv;
 extern crate env_logger;
 extern crate failure;
 #[macro_use]
 extern crate log;
 extern crate irc;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate toml;
 
-type Result<T> = ::std::result::Result<T, ::failure::Error>;
+mod app;
+mod error;
+
+use error::*;
+
+const VERSION_STR: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    ":",
+    env!("CARGO_PKG_VERSION"),
+    ":Compiled with rustc",
+);
 
 fn main() {
     env_logger::init();
-    dotenv::dotenv().ok();
 
-    while let Err(e) = main_impl() {
-        let report = e.causes().skip(1).fold(format!("{}", e), |acc, err| {
-            format!("{}: {}", acc, err)
-        });
-        error!("{}", report);
-        info!("{}", e.backtrace());
+    while let Err(err) = app::main_impl() {
+        match err {
+            Ephemeral(e) => report_err(e),
+            Permanent(e) => {
+                report_err(e);
+                break;
+            }
+        }
     }
 }
 
-fn main_impl() -> Result<()> {
-    println!("Hello, world!");
-    Ok(())
+fn report_err(e: failure::Error) {
+    let report = e.causes().skip(1).fold(format!("{}", e), |acc, err| {
+        format!("{}: {}", acc, err)
+    });
+    error!("{}", report);
+    info!("{}", e.backtrace());
 }
