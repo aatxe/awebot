@@ -11,6 +11,7 @@ extern crate serde_derive;
 extern crate toml;
 
 mod app;
+mod config;
 mod error;
 
 use error::*;
