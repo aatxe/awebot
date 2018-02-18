@@ -10,7 +10,11 @@ extern crate serde;
 extern crate serde_derive;
 extern crate toml;
 
+#[macro_use]
+mod dispatch;
+
 mod app;
+mod cmd;
 mod config;
 mod error;
 
