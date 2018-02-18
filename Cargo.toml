@@ -9,4 +9,7 @@ dotenv = "0.9"
 env_logger = "0.5"
 failure = "0.1"
 log = "0.4"
-irc = "0.13"
+irc = { git = "https://github.com/aatxe/irc", branch = "develop", features = ["ctcp", "toml"] }
+serde = "1.0"
+serde_derive = "1.0"
+toml = "0.4"
