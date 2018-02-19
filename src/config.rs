@@ -9,7 +9,16 @@ use toml;
 use error::*;
 
 #[derive(Clone, Deserialize, Default, Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Config {
+    irc: Irc,
+    #[serde(default)]
+    game: Game,
+}
+
+#[derive(Clone, Deserialize, Default, Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Irc {
     // Required
     server: String,
     lobby: String,
@@ -17,17 +26,26 @@ pub struct Config {
     // Optional
     nickname: Option<String>,
     port: Option<u16>,
-    ssl: Option<bool>,
+    use_ssl: Option<bool>,
+}
+
+#[derive(Clone, Deserialize, Default, Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Game {
+    // All optional
     database: Option<String>,
+    reward_time: Option<u16>,
+    reward_rate: Option<u32>,
 }
 
 impl From<Config> for IrcConfig {
     fn from(config: Config) -> IrcConfig {
+        let config = config.irc;
         IrcConfig {
             nickname: config.nickname.or_else(|| Some(env!("CARGO_PKG_NAME").to_owned())),
             server: Some(config.server),
             port: config.port,
-            use_ssl: config.ssl,
+            use_ssl: config.use_ssl,
             channels: Some(vec![config.lobby]),
             umodes: Some("+B".to_owned()),
             user_info: Some("merveille: an IRC collect-and-combat game.".to_owned()),
@@ -60,26 +78,34 @@ impl Config {
     }
 
     pub fn server(&self) -> &str {
-        &self.server
+        &self.irc.server
     }
 
     pub fn lobby(&self) -> &str {
-        &self.lobby
+        &self.irc.lobby
     }
 
     pub fn nickname(&self) -> &str {
-        self.database.as_ref().map(|s| &s[..]).unwrap_or(env!("CARGO_PKG_NAME"))
+        self.irc.nickname.as_ref().map(|s| &s[..]).unwrap_or(env!("CARGO_PKG_NAME"))
     }
 
     pub fn port(&self) -> u16 {
-        self.port.unwrap_or(6667)
+        self.irc.port.unwrap_or(6667)
     }
 
-    pub fn ssl(&self) -> bool {
-        self.ssl.unwrap_or_default()
+    pub fn use_ssl(&self) -> bool {
+        self.irc.use_ssl.unwrap_or_default()
     }
 
     pub fn database(&self) -> &str {
-        self.database.as_ref().map(|s| &s[..]).unwrap_or(concat!(env!("CARGO_PKG_NAME"), ".db"))
+        self.game.database.as_ref().map(|s| &s[..]).unwrap_or(concat!(env!("CARGO_PKG_NAME"), ".db"))
+    }
+
+    pub fn reward_time(&self) -> u16 {
+        self.game.reward_time.unwrap_or(60)
+    }
+
+    pub fn reward_rate(&self) -> u32 {
+        self.game.reward_rate.unwrap_or(50)
     }
 }
