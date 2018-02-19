@@ -5,10 +5,12 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 extern crate irc;
+extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
+extern crate tokio_timer;
 
 #[macro_use]
 mod dispatch;
