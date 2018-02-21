@@ -1,6 +1,10 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use clap::{Arg, App};
+use diesel::prelude::*;
+use diesel::sqlite::SqliteConnection;
+use failure::err_msg;
 use irc::client::prelude::*;
 use irc::error::IrcError::Timer;
 use tokio_timer::wheel;
@@ -10,8 +14,24 @@ use dispatch::Dispatcher;
 use error::*;
 
 pub fn main_impl() -> Result<()> {
-    let config = Arc::new(Config::load("awebot.toml")?);
-    let dispatcher = dispatcher!('@', Quit);
+    let clap = App::new("awebot")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("Aaron Weiss <awe@pdgn.co>")
+        .about("a lovely IRC bot")
+        .arg(Arg::with_name("config").help("Configuration file for awebot").required(true).index(1))
+        .get_matches();
+
+    let config = Arc::new(Config::load(
+        clap.value_of("config").unwrap()
+    )?);
+    let db_path = config.get_option("database").ok_or_else(|| {
+        Permanent(err_msg("must specify a database path in the configuration"))
+    })?;
+    let dispatcher = dispatcher!(
+        '@',
+        Rehash::from(config.owners.clone().unwrap_or_else(Vec::new)),
+        Tell::from(SqliteConnection::establish(db_path)?)
+    );
 
     let mut reactor = IrcReactor::new()?;
     let client = reactor.prepare_client_and_connect(&config)?;

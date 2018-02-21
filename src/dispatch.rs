@@ -1,6 +1,7 @@
 use irc::client::IrcClient;
 use irc::error::Result;
 
+#[derive(Copy, Clone)]
 pub struct Context<'a> {
     pub client: &'a IrcClient,
     pub sender: &'a str,
@@ -12,6 +13,10 @@ pub trait Handler {
     fn command(&self) -> &'static str;
 
     fn handle<'a>(&self, context: Context<'a>) -> Result<()>;
+
+    fn on_each_message<'a>(&self, _: Context<'a>) -> Result<()> {
+        Ok(())
+    }
 }
 
 pub struct Dispatcher {
@@ -35,6 +40,14 @@ impl Dispatcher {
         &self, client: &IrcClient, sender: &str, respond_to: &str, message: &str,
     ) -> Result<()> {
         if !message.starts_with(self.line_start) {
+            for handler in &self.handlers {
+                handler.on_each_message(Context {
+                    client: client,
+                    sender: sender,
+                    respond_to: respond_to,
+                    args: &[],
+                })?;
+            }
             return Ok(())
         }
         let message = &message[1..];
@@ -54,7 +67,6 @@ impl Dispatcher {
         for handler in &self.handlers {
             if command == handler.command() {
                 handler.handle(context)?;
-                break;
             }
         }
 

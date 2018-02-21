@@ -1,3 +1,5 @@
+extern crate chrono;
+extern crate clap;
 #[macro_use]
 extern crate diesel;
 extern crate env_logger;
@@ -14,6 +16,8 @@ mod dispatch;
 mod app;
 mod cmd;
 mod error;
+mod models;
+mod schema;
 
 use error::*;
 
