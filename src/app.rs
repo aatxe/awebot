@@ -1,62 +1,36 @@
-use std::collections::HashSet;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use irc::client::prelude::*;
 use irc::error::IrcError::Timer;
-use irc::proto::response::Response::RPL_WHOREPLY;
-use rand;
-use rand::Rng;
 use tokio_timer::wheel;
 
-use config::Config;
 use cmd::*;
 use dispatch::Dispatcher;
 use error::*;
 
 pub fn main_impl() -> Result<()> {
-    let config = Arc::new(Config::load("merveille.toml")?);
-    let lobby = Arc::new(Mutex::new(HashSet::new()));
-    let dispatcher = dispatcher!(',', Quit);
+    let config = Arc::new(Config::load("awebot.toml")?);
+    let dispatcher = dispatcher!('@', Quit);
 
     let mut reactor = IrcReactor::new()?;
-    let client = reactor.prepare_client_and_connect(&Config::clone(&config).into())?;
+    let client = reactor.prepare_client_and_connect(&config)?;
     client.identify()?;
 
-    reactor.register_client_with_handler(client.clone(), {
-        let config = config.clone();
-        let lobby = lobby.clone();
-        move |client, message| {
+    reactor.register_client_with_handler(client.clone(), move |client, message| {
+        trace!("{}", message.to_string().trimmed());
 
-            trace!("{}", message.to_string().trimmed());
-
-            if let Command::PRIVMSG(ref target, ref msg) = message.command {
-                if let Some(source) = message.source_nickname() {
-                    dispatcher.dispatch(
-                        &client, source, message.response_target().unwrap_or(target), msg
-                    )?;
-                } else {
-                    warn!("received PRIVMSG without source");
-                    warn!("in: {}", message.to_string().trimmed());
-                }
-            } else if let Command::Response(RPL_WHOREPLY, ref args, _) = message.command {
-                if args.len() == 6 && args[0] == config.lobby() { // RFC 2812
-                    lobby.lock().unwrap().insert(args[4].to_owned());
-                } else if args.len() == 7 && args[1] == config.lobby() { // InspIRCd
-                    lobby.lock().unwrap().insert(args[5].to_owned());
-                } else {
-                    warn!("received unusual RPL_WHOREPLY");
-                    warn!("in: {}", message.to_string().trimmed());
-                }
-            } else if let Command::JOIN(ref chan, _, _) = message.command {
-                if chan == config.lobby() {
-                    if let Some(source) = message.source_nickname() {
-                        lobby.lock().unwrap().insert(source.to_owned());
-                    }
-                }
+        if let Command::PRIVMSG(ref target, ref msg) = message.command {
+            if let Some(source) = message.source_nickname() {
+                dispatcher.dispatch(
+                    &client, source, message.response_target().unwrap_or(target), msg
+                )?;
+            } else {
+                warn!("received PRIVMSG without source");
+                warn!("in: {}", message.to_string().trimmed());
             }
-            Ok(())
         }
+        Ok(())
     });
 
     let who_interval = wheel()
@@ -67,34 +41,9 @@ pub fn main_impl() -> Result<()> {
 
     reactor.register_future(who_interval.map_err(|e| Timer(e)).for_each({
         let client = client.clone();
-        let config = config.clone();
         move |()| {
-            client.send(Command::WHO(Some(config.lobby().to_owned()), None))
-        }
-    }));
-
-    let reward_interval = wheel()
-        .tick_duration(Duration::from_secs(1))
-        .num_slots(4096)
-        .build()
-        .interval(Duration::from_secs(u64::from(config.reward_time())));
-
-    reactor.register_future(reward_interval.map_err(|e| Timer(e)).for_each({
-        let client = client.clone();
-        let config = config.clone();
-        move |()| {
-            let mut rng = rand::thread_rng();
-
-            for user in lobby.lock().unwrap().iter() {
-                if rng.gen_weighted_bool(config.reward_rate()) {
-                    client.send_privmsg(
-                        config.lobby(), format!("would've issued a reward to {}", user)
-                    )?;
-                } else {
-                    client.send_privmsg(
-                        config.lobby(), format!("did not issue a reward to {}", user)
-                    )?;
-                }
+            for chan in client.list_channels().expect("unreachable") {
+                client.send(Command::WHO(Some(chan.to_owned()), None))?;
             }
             Ok(())
         }

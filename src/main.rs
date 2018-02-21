@@ -5,10 +5,6 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 extern crate irc;
-extern crate rand;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 extern crate toml;
 extern crate tokio_timer;
 
@@ -17,17 +13,9 @@ mod dispatch;
 
 mod app;
 mod cmd;
-mod config;
 mod error;
 
 use error::*;
-
-const VERSION_STR: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    ":",
-    env!("CARGO_PKG_VERSION"),
-    ":Compiled with rustc",
-);
 
 fn main() {
     env_logger::init();
