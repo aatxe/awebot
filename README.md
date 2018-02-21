@@ -1,4 +1,2 @@
 # awebot [![Build Status](https://travis-ci.org/aatxe/awebot.svg?branch=master)](https://travis-ci.org/aatxe/awebot) #
-A dynamic, plugin-based IRC bot in Rust. Some plugins can be found [here](https://github.com/aatxe/awebot-plugins), 
-including [a template](https://github.com/aatxe/awebot-plugins/tree/master/template). Plugins (and
-the binary) may crash or behave strangely. Try compiling with `cargo rustc -- -Cprefer-dynamic`.
+An IRC bot in Rust using [the irc crate](https://github.com/aatxe/irc).
