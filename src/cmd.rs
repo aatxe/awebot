@@ -197,6 +197,8 @@ impl Handler for Whois {
         }
 
         for nick in context.args {
+            if nick.len() == 0 { continue }
+
             let msg = match whois.find(nick).first::<WhoisEntry>(&self.conn) {
                 Ok(res) => if res.nickname == context.sender {
                     format!(
