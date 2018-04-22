@@ -152,7 +152,7 @@ impl Handler for IAm {
             description: &description,
         };
 
-        diesel::insert_into(whois::table)
+        diesel::replace_into(whois::table)
             .values(&new_whois)
             .execute(&self.conn)
             .map_err(|e| Custom { inner: e.into() })?;
