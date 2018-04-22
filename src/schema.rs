@@ -8,3 +8,15 @@ table! {
         private -> Bool,
     }
 }
+
+table! {
+    whois (nickname) {
+        nickname -> Text,
+        description -> Text,
+    }
+}
+
+allow_tables_to_appear_in_same_query!(
+    mail,
+    whois,
+);

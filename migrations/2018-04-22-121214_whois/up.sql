@@ -1,0 +1,4 @@
+CREATE TABLE whois (
+  nickname VARCHAR PRIMARY KEY NOT NULL,
+  description VARCHAR NOT NULL
+)

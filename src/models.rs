@@ -2,7 +2,7 @@ use std::fmt::{Display, Error, Formatter};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 
-use schema::mail;
+use schema::{mail, whois};
 
 #[derive(Queryable)]
 pub struct Message {
@@ -61,4 +61,23 @@ pub struct NewMessage<'a> {
     pub message: &'a str,
     pub sent: &'a NaiveDateTime,
     pub private: bool,
+}
+
+#[derive(Queryable)]
+pub struct WhoisEntry {
+    pub nickname: String,
+    pub description: String,
+}
+
+impl Display for WhoisEntry {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+        write!(fmt, "{} is {}", self.nickname, self.description)
+    }
+}
+
+#[derive(Insertable)]
+#[table_name="whois"]
+pub struct NewWhoisEntry<'a> {
+    pub nickname: &'a str,
+    pub description: &'a str,
 }

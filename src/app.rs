@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 use std::time::Duration;
 
 use clap::{Arg, App};
@@ -21,16 +21,21 @@ pub fn main_impl() -> Result<()> {
         .arg(Arg::with_name("config").help("Configuration file for awebot").required(true).index(1))
         .get_matches();
 
-    let config = Arc::new(Config::load(
+    let config = Config::load(
         clap.value_of("config").unwrap()
-    )?);
+    )?;
     let db_path = config.get_option("database").ok_or_else(|| {
         Permanent(err_msg("must specify a database path in the configuration"))
     })?;
+    let whois = Rc::new(Whois::from(SqliteConnection::establish(db_path)?));
+
     let dispatcher = dispatcher!(
         '@',
         Rehash::from(config.owners.clone().unwrap_or_else(Vec::new)),
-        Tell::from(SqliteConnection::establish(db_path)?)
+        Tell::from(SqliteConnection::establish(db_path)?),
+        IAm::from(SqliteConnection::establish(db_path)?),
+        Whoami::from(whois.clone()),
+        whois,
     );
 
     let mut reactor = IrcReactor::new()?;

@@ -1,3 +1,7 @@
+use std::ops::Deref;
+use std::rc::Rc;
+use std::sync::Arc;
+
 use irc::client::IrcClient;
 use irc::error::Result;
 
@@ -10,12 +14,40 @@ pub struct Context<'a> {
 }
 
 pub trait Handler {
-    fn command(&self) -> &'static str;
+    fn command(&self) -> &'static [&'static str];
 
     fn handle<'a>(&self, context: Context<'a>) -> Result<()>;
 
     fn on_each_message<'a>(&self, _: Context<'a>) -> Result<()> {
         Ok(())
+    }
+}
+
+impl<T> Handler for Rc<T> where T: Handler {
+    fn command(&self) -> &'static [&'static str] {
+        self.deref().command()
+    }
+
+    fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
+        self.deref().handle(context)
+    }
+
+    fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
+        self.deref().on_each_message(context)
+    }
+}
+
+impl<T> Handler for Arc<T> where T: Handler {
+    fn command(&self) -> &'static [&'static str] {
+        self.deref().command()
+    }
+
+    fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
+        self.deref().handle(context)
+    }
+
+    fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
+        self.deref().on_each_message(context)
     }
 }
 
@@ -50,6 +82,7 @@ impl Dispatcher {
             }
             return Ok(())
         }
+
         let message = &message[1..];
         let fragments: Vec<_> = message.split(' ').collect();
         if fragments.len() == 0 {
@@ -65,7 +98,7 @@ impl Dispatcher {
         };
 
         for handler in &self.handlers {
-            if command == handler.command() {
+            if handler.command().contains(&command) {
                 handler.handle(context)?;
             }
         }
@@ -77,7 +110,7 @@ impl Dispatcher {
 #[macro_export]
 macro_rules! dispatcher {
     ( $s:expr ) => (Dispatcher::new($s));
-    ( $s:expr, $( $x:expr ),* ) => {
+    ( $s:expr, $( $x:expr ),* $(,)* ) => {
         {
             let mut temp_dispatcher = Dispatcher::new($s);
             $(
