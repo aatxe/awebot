@@ -298,7 +298,6 @@ impl Handler for SendTweet {
 
             self.handle.spawn(
                 DraftTweet::new(&message[..])
-                    .place_id("ircs://irc.pdgn.co:6697/")
                     .send(&self.token, &self.handle)
                     .map(|tweet| {
                         info!("{:?}", tweet);
