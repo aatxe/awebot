@@ -49,9 +49,7 @@ pub struct Tell {
 
 impl From<SqliteConnection> for Tell {
     fn from(conn: SqliteConnection) -> Tell {
-        Tell {
-            conn: conn,
-        }
+        Tell { conn }
     }
 }
 
@@ -74,7 +72,7 @@ impl Handler for Tell {
         }
 
         let new_message = NewMessage {
-            target: target,
+            target,
             sender: context.sender,
             message: &context.args[1..].join(" "),
             sent: &Utc::now().naive_utc(),
@@ -125,9 +123,7 @@ pub struct IAm {
 
 impl From<SqliteConnection> for IAm {
     fn from(conn: SqliteConnection) -> IAm {
-        IAm {
-            conn: conn,
-        }
+        IAm { conn }
     }
 }
 
@@ -140,7 +136,7 @@ impl Handler for IAm {
         use models::*;
         use schema::whois;
 
-        if context.args.len() == 0 {
+        if context.args.is_empty() {
             return context.client.send_privmsg(
                 context.respond_to, format!(
                     "{}: Who are you? Let me know by writing a description after the command!",
@@ -175,9 +171,7 @@ pub struct Whois {
 
 impl From<SqliteConnection> for Whois {
     fn from(conn: SqliteConnection) -> Whois {
-        Whois {
-            conn: conn,
-        }
+        Whois { conn }
     }
 }
 
@@ -190,7 +184,7 @@ impl Handler for Whois {
         use models::*;
         use schema::whois::dsl::*;
 
-        if context.args.len() == 0 {
+        if context.args.is_empty() {
             return context.client.send_privmsg(
                 context.respond_to, format!(
                     "{}: Who do you want to knouw about? Let me know by writing their nickname \
@@ -201,7 +195,7 @@ impl Handler for Whois {
         }
 
         for nick in context.args {
-            if nick.len() == 0 { continue }
+            if nick.is_empty() { continue }
 
             let msg = match whois.find(nick).first::<WhoisEntry>(&self.conn) {
                 Ok(res) => if res.nickname == context.sender {
@@ -286,7 +280,7 @@ impl Handler for SendTweet {
     }
 
     fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
-        if let Some(ref message) = self.last_message.borrow().get(context.respond_to) {
+        if let Some(message) = self.last_message.borrow().get(context.respond_to) {
             if message.len() > 280 {
                 return context.client.send_privmsg(
                     context.respond_to, format!(

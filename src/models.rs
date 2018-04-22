@@ -47,8 +47,8 @@ impl Display for Message {
         write!(
             fmt, "{}: {}, {} said {}{}", self.target, ago, self.sender,
             self.message,
-            if self.message.ends_with(".") || self.message.ends_with("!") ||
-                self.message.ends_with("?") { "" } else { "." }
+            if self.message.ends_with('.') || self.message.ends_with('!') ||
+                self.message.ends_with('?') { "" } else { "." }
         )
     }
 }

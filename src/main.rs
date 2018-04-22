@@ -28,16 +28,16 @@ fn main() {
 
     while let Err(err) = app::main_impl() {
         match err {
-            Ephemeral(e) => report_err(e),
+            Ephemeral(e) => report_err(&e),
             Permanent(e) => {
-                report_err(e);
+                report_err(&e);
                 break;
             }
         }
     }
 }
 
-fn report_err(e: failure::Error) {
+fn report_err(e: &failure::Error) {
     let report = e.causes().skip(1).fold(format!("{}", e), |acc, err| {
         format!("{}: {}", acc, err)
     });

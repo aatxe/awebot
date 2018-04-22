@@ -55,23 +55,23 @@ impl<T> Handler for Arc<T> where T: Handler {
 
 impl<T> Handler for Option<T> where T: Handler {
     fn command(&self) -> &'static [&'static str] {
-        match self {
-            &Some(ref handler) => handler.command(),
-            &None => &[]
+        match *self {
+            Some(ref handler) => handler.command(),
+            None => &[]
         }
     }
 
     fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
-        match self {
-            &Some(ref handler) => handler.handle(context),
-            &None => Ok(())
+        match *self {
+            Some(ref handler) => handler.handle(context),
+            None => Ok(())
         }
     }
 
     fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
-        match self {
-            &Some(ref handler) => handler.on_each_message(context),
-            &None => Ok(())
+        match *self {
+            Some(ref handler) => handler.on_each_message(context),
+            None => Ok(())
         }
     }
 }
@@ -85,7 +85,7 @@ pub struct Dispatcher {
 impl Dispatcher {
     pub fn new(line_start: char) -> Dispatcher {
         Dispatcher {
-            line_start: line_start,
+            line_start,
             handlers: Vec::new(),
             cmd_map: HashMap::new(),
         }
@@ -98,19 +98,17 @@ impl Dispatcher {
         self.handlers.push(Box::new(handler));
     }
 
-    pub fn get_handler(&self, command: &str) -> Option<&Box<Handler>> {
-        self.cmd_map.get(command).map(|idx| &self.handlers[*idx])
+    pub fn get_handler(&self, command: &str) -> Option<&Handler> {
+        self.cmd_map.get(command).map(|idx| &*self.handlers[*idx])
     }
 
-    pub fn dispatch<'a>(
+    pub fn dispatch(
         &self, client: &IrcClient, sender: &str, respond_to: &str, message: &str,
     ) -> Result<()> {
         if !message.starts_with(self.line_start) {
             for handler in &self.handlers {
                 handler.on_each_message(Context {
-                    client: client,
-                    sender: sender,
-                    respond_to: respond_to,
+                    client, sender, respond_to,
                     args: &[],
                     msg: message,
                 })?;
@@ -120,21 +118,19 @@ impl Dispatcher {
 
         let message = &message[1..];
         let fragments: Vec<_> = message.split(' ').collect();
-        if fragments.len() == 0 {
+        if fragments.is_empty() {
             return Ok(())
         }
 
         let command = fragments[0];
         let context = Context {
-            client: client,
-            sender: sender,
-            respond_to: respond_to,
+            client, sender, respond_to,
             args: &fragments[1..],
             msg: message,
         };
 
 
-        self.get_handler(&command).map(|handler| handler.handle(context)).unwrap_or(Ok(()))
+        self.get_handler(command).map(|handler| handler.handle(context)).unwrap_or(Ok(()))
     }
 }
 

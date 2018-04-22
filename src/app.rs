@@ -50,7 +50,7 @@ pub fn main_impl() -> Result<()> {
         if let Command::PRIVMSG(ref target, ref msg) = message.command {
             if let Some(source) = message.source_nickname() {
                 dispatcher.dispatch(
-                    &client, source, message.response_target().unwrap_or(target), msg
+                    client, source, message.response_target().unwrap_or(target), msg
                 )?;
             } else {
                 warn!("received PRIVMSG without source");
@@ -66,7 +66,7 @@ pub fn main_impl() -> Result<()> {
         .build()
         .interval(Duration::from_secs(20));
 
-    reactor.register_future(who_interval.map_err(|e| Timer(e)).for_each(move |()| {
+    reactor.register_future(who_interval.map_err(Timer).for_each(move |()| {
             for chan in client.list_channels().expect("unreachable") {
                 client.send(Command::WHO(Some(chan.to_owned()), None))?;
             }
