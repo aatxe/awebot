@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use chrono::Utc;
@@ -260,7 +260,7 @@ pub struct SendTweet {
     handle: Handle,
     token: Token,
     twitter: String,
-    last_message: RefCell<Option<String>>,
+    last_message: RefCell<HashMap<String, String>>,
 }
 
 impl SendTweet {
@@ -276,7 +276,7 @@ impl SendTweet {
 
         let token = Token::Access { consumer, access };
         let twitter = config.get_option("twitter_name")?.to_owned();
-        Some(SendTweet { handle, token, twitter, last_message: RefCell::new(None) })
+        Some(SendTweet { handle, token, twitter, last_message: RefCell::new(HashMap::new()) })
     }
 }
 
@@ -286,7 +286,7 @@ impl Handler for SendTweet {
     }
 
     fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
-        if let Some(ref message) = *self.last_message.borrow() {
+        if let Some(ref message) = self.last_message.borrow().get(context.respond_to) {
             if message.len() > 280 {
                 return context.client.send_privmsg(
                     context.respond_to, format!(
@@ -318,7 +318,10 @@ impl Handler for SendTweet {
     }
 
     fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
-        self.last_message.replace(Some(context.msg.to_owned()));
+        self.last_message.borrow_mut().insert(
+            context.respond_to.to_owned(),
+            context.msg.to_owned()
+        );
         Ok(())
     }
 }
