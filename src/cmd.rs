@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
 
@@ -6,9 +7,12 @@ use diesel;
 use diesel::prelude::*;
 use diesel::result::{Error as QueryError};
 use diesel::sqlite::SqliteConnection;
+use egg_mode::{KeyPair, Token};
+use egg_mode::tweet::DraftTweet;
 use irc::client::prelude::*;
 use irc::error::Result;
 use irc::error::IrcError::Custom;
+use tokio_core::reactor::Handle;
 
 use dispatch::{Context, Handler};
 
@@ -249,5 +253,73 @@ impl Handler for Whoami {
             args: &[context.sender],
             .. context
         })
+    }
+}
+
+pub struct SendTweet {
+    handle: Handle,
+    token: Token,
+    twitter: String,
+    last_message: RefCell<Option<String>>,
+}
+
+impl SendTweet {
+    pub fn new(config: &Config, handle: Handle) -> Option<SendTweet> {
+        let consumer = KeyPair::new(
+            config.get_option("twitter_consumer_key")?.to_owned(),
+            config.get_option("twitter_consumer_secret")?.to_owned(),
+        );
+        let access = KeyPair::new(
+            config.get_option("twitter_access_key")?.to_owned(),
+            config.get_option("twitter_access_secret")?.to_owned(),
+        );
+
+        let token = Token::Access { consumer, access };
+        let twitter = config.get_option("twitter_name")?.to_owned();
+        Some(SendTweet { handle, token, twitter, last_message: RefCell::new(None) })
+    }
+}
+
+impl Handler for SendTweet {
+    fn command(&self) -> &'static [&'static str] {
+        &["sendtweet"]
+    }
+
+    fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
+        if let Some(ref message) = *self.last_message.borrow() {
+            if message.len() > 280 {
+                return context.client.send_privmsg(
+                    context.respond_to, format!(
+                        "Sorry, the last message was {} characters long, and the maximum is 280.",
+                        message.len()
+                    )
+                );
+            }
+
+            self.handle.spawn(
+                DraftTweet::new(&message[..])
+                    .place_id("ircs://irc.pdgn.co:6697/")
+                    .send(&self.token, &self.handle)
+                    .map(|tweet| {
+                        info!("{:?}", tweet);
+                        ()
+                    })
+                    .map_err(|e| {
+                        error!("{}", e);
+                        ()
+                    })
+            );
+
+            context.client.send_privmsg(
+                context.respond_to, format!("Posted tweet as @{}.", &self.twitter)
+            )?;
+        }
+
+        Ok(())
+    }
+
+    fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
+        self.last_message.replace(Some(context.msg.to_owned()));
+        Ok(())
     }
 }

@@ -11,6 +11,7 @@ pub struct Context<'a> {
     pub sender: &'a str,
     pub respond_to: &'a str,
     pub args: &'a [&'a str],
+    pub msg: &'a str,
 }
 
 pub trait Handler {
@@ -51,6 +52,29 @@ impl<T> Handler for Arc<T> where T: Handler {
     }
 }
 
+impl<T> Handler for Option<T> where T: Handler {
+    fn command(&self) -> &'static [&'static str] {
+        match self {
+            &Some(ref handler) => handler.command(),
+            &None => &[]
+        }
+    }
+
+    fn handle<'a>(&self, context: Context<'a>) -> Result<()> {
+        match self {
+            &Some(ref handler) => handler.handle(context),
+            &None => Ok(())
+        }
+    }
+
+    fn on_each_message<'a>(&self, context: Context<'a>) -> Result<()> {
+        match self {
+            &Some(ref handler) => handler.on_each_message(context),
+            &None => Ok(())
+        }
+    }
+}
+
 pub struct Dispatcher {
     line_start: char,
     handlers: Vec<Box<Handler>>,
@@ -78,6 +102,7 @@ impl Dispatcher {
                     sender: sender,
                     respond_to: respond_to,
                     args: &[],
+                    msg: message,
                 })?;
             }
             return Ok(())
@@ -95,6 +120,7 @@ impl Dispatcher {
             sender: sender,
             respond_to: respond_to,
             args: &fragments[1..],
+            msg: message,
         };
 
         for handler in &self.handlers {

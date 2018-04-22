@@ -7,9 +7,11 @@ authors = ["Aaron Weiss <awe@pdgn.co>"]
 chrono = "0.4"
 clap = "2"
 diesel = { version = "1.1", features = ["sqlite", "chrono"] }
+egg-mode = "0.12"
 env_logger = "0.5"
 failure = "0.1"
 log = "0.4"
 irc = { git = "https://github.com/aatxe/irc", branch = "develop", features = ["ctcp", "toml"] }
 toml = "0.4"
+tokio-core = "0.1"
 tokio-timer = "0.1"

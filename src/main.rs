@@ -2,12 +2,14 @@ extern crate chrono;
 extern crate clap;
 #[macro_use]
 extern crate diesel;
+extern crate egg_mode;
 extern crate env_logger;
 extern crate failure;
 #[macro_use]
 extern crate log;
 extern crate irc;
 extern crate toml;
+extern crate tokio_core;
 extern crate tokio_timer;
 
 #[macro_use]

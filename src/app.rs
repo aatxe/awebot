@@ -29,6 +29,8 @@ pub fn main_impl() -> Result<()> {
     })?;
     let whois = Rc::new(Whois::from(SqliteConnection::establish(db_path)?));
 
+    let mut reactor = IrcReactor::new()?;
+
     let dispatcher = dispatcher!(
         '@',
         Rehash::from(config.owners.clone().unwrap_or_else(Vec::new)),
@@ -36,9 +38,9 @@ pub fn main_impl() -> Result<()> {
         IAm::from(SqliteConnection::establish(db_path)?),
         Whoami::from(whois.clone()),
         whois,
+        SendTweet::new(&config, reactor.inner_handle()),
     );
 
-    let mut reactor = IrcReactor::new()?;
     let client = reactor.prepare_client_and_connect(&config)?;
     client.identify()?;
 
