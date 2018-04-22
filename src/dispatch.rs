@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -78,6 +79,7 @@ impl<T> Handler for Option<T> where T: Handler {
 pub struct Dispatcher {
     line_start: char,
     handlers: Vec<Box<Handler>>,
+    cmd_map: HashMap<&'static str, usize>,
 }
 
 impl Dispatcher {
@@ -85,11 +87,19 @@ impl Dispatcher {
         Dispatcher {
             line_start: line_start,
             handlers: Vec::new(),
+            cmd_map: HashMap::new(),
         }
     }
 
     pub fn register<H>(&mut self, handler: H) where H: Handler + 'static {
+        for cmd in handler.command() {
+            self.cmd_map.insert(cmd, self.handlers.len());
+        }
         self.handlers.push(Box::new(handler));
+    }
+
+    pub fn get_handler(&self, command: &str) -> Option<&Box<Handler>> {
+        self.cmd_map.get(command).map(|idx| &self.handlers[*idx])
     }
 
     pub fn dispatch<'a>(
@@ -123,13 +133,8 @@ impl Dispatcher {
             msg: message,
         };
 
-        for handler in &self.handlers {
-            if handler.command().contains(&command) {
-                handler.handle(context)?;
-            }
-        }
 
-        Ok(())
+        self.get_handler(&command).map(|handler| handler.handle(context)).unwrap_or(Ok(()))
     }
 }
 
