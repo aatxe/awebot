@@ -187,7 +187,7 @@ impl Handler for Whois {
         if context.args.is_empty() {
             return context.client.send_privmsg(
                 context.respond_to, format!(
-                    "{}: Who do you want to knouw about? Let me know by writing their nickname \
+                    "{}: Who do you want to know about? Let me know by writing their nickname \
                      after the command!",
                     context.sender,
                 )
