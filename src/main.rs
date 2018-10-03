@@ -2,8 +2,11 @@ extern crate chrono;
 extern crate clap;
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
 extern crate egg_mode;
 extern crate env_logger;
+#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
@@ -38,7 +41,7 @@ fn main() {
 }
 
 fn report_err(e: &failure::Error) {
-    let report = e.causes().skip(1).fold(format!("{}", e), |acc, err| {
+    let report = e.iter_chain().skip(1).fold(format!("{}", e), |acc, err| {
         format!("{}: {}", acc, err)
     });
     error!("{}", report);

@@ -7,6 +7,7 @@ authors = ["Aaron Weiss <awe@pdgn.co>"]
 chrono = "0.4"
 clap = "2"
 diesel = { version = "1.1", features = ["sqlite", "chrono"] }
+diesel_migrations = "1"
 egg-mode = "0.12"
 env_logger = "0.5"
 failure = "0.1"

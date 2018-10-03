@@ -13,6 +13,9 @@ use cmd::*;
 use dispatch::Dispatcher;
 use error::*;
 
+// Embed Diesel migrations.
+embed_migrations!();
+
 pub fn main_impl() -> Result<()> {
     let clap = App::new("awebot")
         .version(env!("CARGO_PKG_VERSION"))
@@ -27,7 +30,14 @@ pub fn main_impl() -> Result<()> {
     let db_path = config.get_option("database").ok_or_else(|| {
         Permanent(err_msg("must specify a database path in the configuration"))
     })?;
+    let () = embedded_migrations::run(&SqliteConnection::establish(db_path)?).map_err(|e| {
+        Permanent(DatabaseSetupFailed {
+            database: db_path.to_owned(),
+            cause: e,
+        }.into())
+    })?;
     let whois = Rc::new(Whois::from(SqliteConnection::establish(db_path)?));
+
 
     let mut reactor = IrcReactor::new()?;
 

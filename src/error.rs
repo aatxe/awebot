@@ -1,3 +1,4 @@
+use diesel_migrations::RunMigrationsError;
 use failure;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -16,6 +17,14 @@ impl<F: failure::Fail> From<F> for Error {
     fn from(fail: F) -> Error {
         Ephemeral(fail.into())
     }
+}
+
+#[derive(Debug, Fail)]
+#[fail(display = "failed to configure database: {}", database)]
+pub struct DatabaseSetupFailed {
+    pub database: String,
+    #[fail(cause)]
+    pub cause: RunMigrationsError,
 }
 
 pub use self::Error::{Ephemeral, Permanent};
